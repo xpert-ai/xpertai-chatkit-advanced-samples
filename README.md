@@ -1,16 +1,22 @@
 # xpertai-chatkit-advanced-samples
 
-Starter apps to build with XpertAI ChatKit SDK
+Starter apps to build with the XpertAI ChatKit SDK.
 
 ## Deep Researcher Example
 
-Startup instructions:
+### Prerequisites
 
-```sh
-pnpm install
+1. `VITE_CHATKIT_XPERT_ID`: Digital Expert ID from the XpertAI platform.
+2. `XPERTAI_API_KEY`: API Key from the XpertAI platform.
+3. Startup instructions:
+
+```shell
+$ pnpm install
 # Copy .env.example to .env and fill in your environment variables.
-cp examples/deep-researcher/frontend/.env.example examples/deep-researcher/frontend/.env
-cp examples/deep-researcher/backend/.env.example examples/deep-researcher/backend/.env
-# Start all services in one command
-pnpm dev
+$ cp examples/deep-researcher/frontend/.env.example examples/deep-researcher/frontend/.env
+$ cp examples/deep-researcher/backend/.env.example examples/deep-researcher/backend/.env
+# Start all services with a single command
+$ pnpm dev
 ```
+
+4. Add the ChatKit Host URL (find it on terminal default is `http://127.0.0.1:5200`) to the `CORS_ALLOW_ORIGINS` list in your XpertAI environment variables.
