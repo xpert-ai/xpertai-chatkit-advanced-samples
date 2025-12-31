@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import ResearchPanel from './components/ResearchPanel.vue'
 import { ChatKit, useChatKit } from '@xpert-ai/chatkit-vue'
 import { type ChatKitOptions, type ClientToolMessageInput, filterPlaygroundOptions, type SupportedLocale } from '@xpert-ai/chatkit-types'
 
@@ -10,7 +10,35 @@ import { type ChatKitOptions, type ClientToolMessageInput, filterPlaygroundOptio
 // ============================================================================
 const playgroundConfig: Partial<ChatKitOptions> = {
   locale: 'zh' as SupportedLocale,
-  theme: {},
+  theme: {
+    colorScheme: 'light',
+    radius: 'round',
+    density: 'spacious',
+    color: {
+      grayscale: {
+        hue: 38,
+        tint: 5,
+        shade: 3
+      },
+      accent: {
+        primary: '#f9b11f',
+        level: 3
+      }
+    },
+    typography: {
+      baseSize: 16,
+      fontFamily: 'Inter, sans-serif',
+      fontSources: [
+        {
+          family: 'Inter',
+          src: 'https://rsms.me/inter/font-files/Inter-Regular.woff2',
+          weight: 400,
+          style: 'normal'
+        }
+      // ...and 3 more font sources
+      ]
+    }
+  },
   composer: {
     attachments: {
       enabled: true,
@@ -109,12 +137,18 @@ const chatkit = useChatKit({
     },
   }
 })
+
+const sendResearchPrompt = async (text: string) => {
+  if (!text.trim()) return
+  await chatkit.sendUserMessage({ text })
+  chatkit.focusComposer()
+}
 </script>
 
 <template>
   <div class="app-shell">
     <div class="left-panel">
-      <HelloWorld msg="Vite + Vue" :assistantId="assistantId" />
+      <ResearchPanel :assistantId="assistantId" @send="sendResearchPrompt" />
     </div>
     <ChatKit :control="chatkit.control" class="chat-panel" />
   </div>
@@ -124,18 +158,23 @@ const chatkit = useChatKit({
 .app-shell {
   display: flex;
   height: 100vh;
+  text-align: left;
 }
 
 .left-panel {
   flex: 1;
-  padding: 16px;
-  border-right: 1px solid #e5e7eb;
+  padding: 24px;
+  border-right: 1px solid rgba(15, 23, 42, 0.12);
   overflow: auto;
+  background: radial-gradient(circle at top left, rgba(225, 143, 45, 0.08), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(47, 127, 127, 0.1), transparent 50%),
+    #f6f1e7;
 }
 
 .chat-panel {
   flex: 0 0 500px;
   min-width: 360px;
+  background: #ffffff;
 }
 @media (max-width: 1024px) {
   .app-shell {

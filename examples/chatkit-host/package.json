@@ -12,6 +12,6 @@
   "license": "ISC",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
-    "@xpert-ai/chatkit-ui": "^0.0.3"
+    "@xpert-ai/chatkit-ui": "^0.0.5"
   }
 }

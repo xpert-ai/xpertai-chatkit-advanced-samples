@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@xpert-ai/chatkit-types": "latest",
+    "@xpert-ai/chatkit-types": "0.0.8",
     "@xpert-ai/chatkit-vue": "latest",
     "vue": "^3.5.24"
   },
