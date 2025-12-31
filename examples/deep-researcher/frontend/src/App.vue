@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ResearchPanel from './components/ResearchPanel.vue'
 import { ChatKit, useChatKit } from '@xpert-ai/chatkit-vue'
-import { type ChatKitOptions, type ClientToolMessageInput, filterPlaygroundOptions, type SupportedLocale } from '@xpert-ai/chatkit-types'
+import { type ChatKitOptions, type ClientToolMessageInput, type SupportedLocale } from '@xpert-ai/chatkit-types'
+import { ref } from 'vue'
 
 // ============================================================================
 // Playground config - copied from https://chatkit.studio/playground
@@ -9,7 +10,7 @@ import { type ChatKitOptions, type ClientToolMessageInput, filterPlaygroundOptio
 // Other options (e.g., threadItemActions.feedback) are automatically filtered out
 // ============================================================================
 const playgroundConfig: Partial<ChatKitOptions> = {
-  locale: 'zh' as SupportedLocale,
+  locale: 'en' as SupportedLocale,
   theme: {
     colorScheme: 'light',
     radius: 'round',
@@ -57,7 +58,7 @@ const playgroundConfig: Partial<ChatKitOptions> = {
     ]
   },
   startScreen: {
-    greeting: '',
+    greeting: 'Your Deep Researcher!',
     prompts: [
       {
         icon: 'circle-question',
@@ -68,21 +69,16 @@ const playgroundConfig: Partial<ChatKitOptions> = {
   }
 }
 
-// Filter playground config (keep only whitelisted items)
-const filteredPlaygroundConfig = filterPlaygroundOptions(playgroundConfig)
-
 const xpertApiUrl = (import.meta.env.VITE_XPERTAI_API_URL as string | undefined) ?? ''
 const backendOrigin = (import.meta.env.VITE_CHATKIT_BACKEND as string | undefined) ?? ''
 const assistantId = (import.meta.env.VITE_CHATKIT_XPERT_ID as string | undefined) ?? ''
 const frameUrl = (import.meta.env.VITE_CHATKIT_TARGET as string | undefined) ?? ''
 
-const chatkitOptions: Partial<ChatKitOptions> = {
-  ...filteredPlaygroundConfig,
-  frameUrl
-}
+const reportPayload = ref<{ title: string; content: string } | null>(null)
 
 const chatkit = useChatKit({
-  ...chatkitOptions,
+  ...playgroundConfig,
+  frameUrl,
   api: {
     apiUrl: xpertApiUrl,
     xpertId: assistantId,
@@ -125,6 +121,13 @@ const chatkit = useChatKit({
   },
   onEffect: ({ name, data }) => {
     console.log(`Effect triggered: ${name}`, data)
+    if (name === 'write_report' && data && typeof data === 'object') {
+      const payload = data as { title?: string; content?: string }
+      reportPayload.value = {
+        title: payload.title ?? 'Research Report',
+        content: payload.content ?? ''
+      }
+    }
   },
   widgets: {
     async onAction(action: {
@@ -138,17 +141,26 @@ const chatkit = useChatKit({
   }
 })
 
-const sendResearchPrompt = async (text: string) => {
-  if (!text.trim()) return
-  await chatkit.sendUserMessage({ text })
+const sendResearchPrompt = async (systemPrompt: string) => {
+  if (!systemPrompt.trim()) return
+  await chatkit.sendUserMessage({ text: systemPrompt, newThread: true } as any)
   chatkit.focusComposer()
+}
+
+const clearReport = () => {
+  reportPayload.value = null
 }
 </script>
 
 <template>
   <div class="app-shell">
     <div class="left-panel">
-      <ResearchPanel :assistantId="assistantId" @send="sendResearchPrompt" />
+      <ResearchPanel
+        :assistantId="assistantId"
+        :reportPayload="reportPayload"
+        @send="sendResearchPrompt"
+        @close-report="clearReport"
+      />
     </div>
     <ChatKit :control="chatkit.control" class="chat-panel" />
   </div>

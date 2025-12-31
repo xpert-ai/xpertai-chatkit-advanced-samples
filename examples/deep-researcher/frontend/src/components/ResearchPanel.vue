@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import MarkdownView from './MarkdownView.vue'
+import { renderMarkdown } from '../utils/markdown'
 
 type ScenarioId = 'market' | 'tech' | 'competitor'
 type FieldType = 'text' | 'textarea' | 'select'
@@ -23,8 +25,18 @@ type ScenarioConfig = {
   fields: ScenarioField[]
 }
 
-const props = defineProps<{ assistantId: string }>()
-const emit = defineEmits<{ (event: 'send', text: string): void }>()
+type ReportItem = {
+  id: string
+  title: string
+  content: string
+  createdAt: string
+}
+
+const props = defineProps<{
+  assistantId: string
+  reportPayload?: { title: string; content: string } | null
+}>()
+const emit = defineEmits<{ (event: 'send', text: string): void; (event: 'close-report'): void }>()
 
 const scenarios: ScenarioConfig[] = [
   {
@@ -182,6 +194,9 @@ const scenarios: ScenarioConfig[] = [
 ]
 
 const activeScenarioId = ref<ScenarioId>('market')
+const reports = ref<ReportItem[]>([])
+const currentReportId = ref<string | null>(null)
+const reportSequence = ref(0)
 
 const formState = reactive<Record<ScenarioId, Record<string, string>>>({
   market: {
@@ -213,8 +228,36 @@ const formState = reactive<Record<ScenarioId, Record<string, string>>>({
 const settings = reactive({
   depth: 3,
   sources: 10,
-  tone: 'Executive'
+  tone: 'Executive',
+  output: 'long'
 })
+
+const outputOptions = [
+  {
+    id: 'brief',
+    label: 'Brief',
+    words: '600-900',
+    summary: 'Executive summary + key findings'
+  },
+  {
+    id: 'standard',
+    label: 'Standard',
+    words: '1200-1800',
+    summary: 'Balanced narrative + analysis'
+  },
+  {
+    id: 'long',
+    label: 'Long-form',
+    words: '1800-2500',
+    summary: 'Deep coverage with sources'
+  },
+  {
+    id: 'deep',
+    label: 'Deep dive',
+    words: '2500-3500',
+    summary: 'Full exploration + implications'
+  }
+]
 
 const samples: Record<ScenarioId, Record<string, string>> = {
   market: {
@@ -256,6 +299,10 @@ const summaryLabel = computed(() => {
   return 'Quick scan'
 })
 
+const outputProfile = computed(() => {
+  return outputOptions.find((option) => option.id === settings.output) ?? outputOptions[2]
+})
+
 const normalizeValue = (value: string) => {
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : 'Not specified'
@@ -274,8 +321,55 @@ const promptPreview = computed(() => {
     scenario.title
   }\nResearch brief:\n${fieldLines}\n\nResearch settings:\n- Depth: ${settings.depth}/5 (${summaryLabel.value})\n- Target sources: ${
     settings.sources
-  }+\n- Tone: ${settings.tone}\n\nOutput requirements:\n- Deliver a long-form report (1500-2500 words)\n- Use markdown headings and clear sectioning\n- Include the following structure:\n${outlineLines}\n- Provide inline citations in [source] format and a Sources section with links.`
+  }+\n- Tone: ${settings.tone}\n- Output: ${outputProfile.value.label} (${outputProfile.value.words} words)\n\nOutput requirements:\n- Deliver a ${outputProfile.value.label.toLowerCase()} report (~${outputProfile.value.words} words)\n- Use markdown headings and clear sectioning\n- Include the following structure:\n${outlineLines}\n- Provide inline citations in [source] format and a Sources section with links. When you use information from a source, you MUST:
+
+1. Add an inline citation immediately after the sentence that uses the source.
+   - Inline citation format: [source: SOURCE_ID]
+   - Example: The Eiffel Tower was completed in 1889. [source: wikipedia_eiffel]
+
+2. At the end of the answer, add a section titled exactly:
+   Sources
+
+3. In the Sources section, list all sources used in the answer.
+   - Use a markdown bullet list
+   - Each item must include:
+     - The same SOURCE_ID used in inline citations
+     - A clickable markdown link
+
+   Format:
+   - SOURCE_ID: https://example.com
+
+4. Every inline citation MUST have a matching entry in the Sources section.
+5. Do NOT list sources that are not cited inline.
+6. Do NOT invent sources or URLs.
+
+Follow this structure strictly.
+`
 })
+
+const currentReport = computed(() => {
+  return reports.value.find((report) => report.id === currentReportId.value) ?? null
+})
+
+const isReportOpen = computed(() => currentReportId.value !== null)
+const reportHtml = computed(() => renderMarkdown(currentReport.value?.content ?? ''))
+
+watch(
+  () => props.reportPayload,
+  (payload) => {
+    if (!payload) return
+    reportSequence.value += 1
+    const report: ReportItem = {
+      id: `report-${Date.now()}-${reportSequence.value}`,
+      title: payload.title || 'Research Report',
+      content: payload.content || '',
+      createdAt: new Date().toLocaleString()
+    }
+    reports.value.unshift(report)
+    currentReportId.value = report.id
+  },
+  { immediate: true }
+)
 
 const applySample = () => {
   const values = formState[activeScenarioId.value]
@@ -294,6 +388,93 @@ const clearForm = () => {
 
 const sendPrompt = () => {
   emit('send', promptPreview.value)
+}
+
+const closeReport = () => {
+  currentReportId.value = null
+  emit('close-report')
+}
+
+const openReport = (reportId: string) => {
+  currentReportId.value = reportId
+}
+
+const copyReportMarkdown = () => {
+  if (!currentReport.value?.content.trim()) return
+  navigator.clipboard.writeText(currentReport.value.content)
+}
+
+const downloadReportPdf = () => {
+  if (!currentReport.value?.content.trim()) return
+  const reportWindow = window.open('', '_blank')
+  if (!reportWindow) return
+  reportWindow.opener = null
+
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+  const safeTitle = escapeHtml(currentReport.value?.title || 'Research Report')
+  const contentHtml = reportHtml.value
+
+  reportWindow.addEventListener('load', () => {
+    reportWindow.print()
+  })
+
+  reportWindow.document.open()
+  reportWindow.document.write(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${safeTitle}</title>
+    <style>
+      body {
+        font-family: "Space Grotesk", Arial, sans-serif;
+        margin: 32px;
+        color: #111827;
+      }
+      h1, h2, h3, h4 {
+        font-family: "Fraunces", Georgia, serif;
+      }
+      p {
+        line-height: 1.7;
+      }
+      pre {
+        background: #111827;
+        color: #e5e7eb;
+        padding: 12px;
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+      code {
+        font-family: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, monospace;
+      }
+      a {
+        color: #0f4c5c;
+      }
+      blockquote {
+        border-left: 3px solid #d97706;
+        padding: 8px 12px;
+        background: #fff7ed;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>${safeTitle}</h1>
+    ${contentHtml}
+  </body>
+</html>`)
+  reportWindow.document.close()
+  reportWindow.focus()
+  window.setTimeout(() => {
+    reportWindow.print()
+  }, 250)
 }
 </script>
 
@@ -318,10 +499,32 @@ const sendPrompt = () => {
         </div>
         <div class="meta-card">
           <span class="meta-label">Output</span>
-          <span class="meta-value">Long-form report</span>
+          <span class="meta-value">{{ outputProfile.label }}</span>
         </div>
       </div>
     </header>
+
+    <section class="panel-section reports">
+      <div class="section-head">
+        <div>
+          <h2>Reports</h2>
+          <p>Generated reports stay here until the page is refreshed.</p>
+        </div>
+      </div>
+      <div v-if="reports.length" class="report-grid">
+        <button
+          v-for="report in reports"
+          :key="report.id"
+          class="report-card"
+          type="button"
+          @click="openReport(report.id)"
+        >
+          <div class="report-card-title">{{ report.title }}</div>
+          <div class="report-card-meta">{{ report.createdAt }}</div>
+        </button>
+      </div>
+      <div v-else class="report-empty-state">No reports yet. Generate one to see it here.</div>
+    </section>
 
     <section class="panel-section">
       <div class="section-head">
@@ -417,6 +620,15 @@ const sendPrompt = () => {
           </select>
           <div class="setting-value">Narrative tone</div>
         </div>
+        <div class="setting-card">
+          <div class="setting-label">Output</div>
+          <select v-model="settings.output">
+            <option v-for="option in outputOptions" :key="option.id" :value="option.id">
+              {{ option.label }} ({{ option.words }})
+            </option>
+          </select>
+          <div class="setting-value">{{ outputProfile.summary }}</div>
+        </div>
       </div>
     </section>
 
@@ -448,6 +660,26 @@ const sendPrompt = () => {
       </div>
     </section>
   </section>
+
+  <div v-if="isReportOpen" class="report-modal" @click.stop>
+    <div class="report-dialog" role="dialog" aria-modal="true" @click.stop>
+      <div class="report-header">
+        <div>
+          <p class="report-label">Report preview</p>
+          <h3>{{ currentReport?.title || 'Research Report' }}</h3>
+        </div>
+        <div class="report-actions">
+          <button class="ghost" type="button" @click="copyReportMarkdown">Copy Markdown</button>
+          <button class="ghost" type="button" @click="downloadReportPdf">Download PDF</button>
+          <button class="close-button" type="button" @click="closeReport">X</button>
+        </div>
+      </div>
+      <div class="report-body">
+        <MarkdownView v-if="currentReport?.content" :content="currentReport.content" />
+        <p v-else class="report-empty">No report content.</p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -540,6 +772,55 @@ h1 {
   flex-direction: column;
   gap: 16px;
   padding: 0 4px;
+}
+
+.reports {
+  margin-top: 10px;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.report-card {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.report-card:hover {
+  border-color: #d97706;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.report-card-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: #1f2937;
+}
+
+.report-card-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.report-empty-state {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(120, 113, 108, 0.4);
+  background: #fdfbf7;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 .section-head {
@@ -802,6 +1083,83 @@ h1 {
   color: #6b7280;
 }
 
+.report-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.report-dialog {
+  width: min(960px, 100%);
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 80px);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px 0;
+}
+
+.report-header h3 {
+  margin: 4px 0 0;
+  font-family: 'Fraunces', serif;
+  font-size: 1.6rem;
+}
+
+.report-label {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #6b7280;
+}
+
+.report-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-button {
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  border-color: #111827;
+}
+
+.report-body {
+  padding: 20px 24px 28px;
+  overflow-y: auto;
+}
+
+.report-empty {
+  margin: 0;
+  color: #6b7280;
+}
+
 .research-panel > * {
   animation: floatUp 0.5s ease both;
 }
@@ -855,6 +1213,11 @@ h1 {
 
   .panel-hero {
     padding: 20px;
+  }
+
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
