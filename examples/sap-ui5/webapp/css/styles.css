@@ -1,0 +1,35 @@
+/* Strikes through the completed items */
+li[data-todo-item-completed="true"] span {
+	text-decoration: line-through;
+}
+
+.todoColumn {
+	box-sizing: border-box;
+}
+
+.chatColumn {
+	box-sizing: border-box;
+	border-radius: 1rem;
+	overflow: hidden;
+}
+
+.chatPanel .sapMPanelContent {
+	padding: 0.5rem;
+}
+
+.chatKitContainer {
+	min-height: 24rem;
+	height: 70vh;
+	width: 100%;
+}
+
+.chatKitHost {
+	height: 100%;
+	width: 100%;
+}
+
+@media (max-width: 768px) {
+	.chatKitContainer {
+		height: 60vh;
+	}
+}
