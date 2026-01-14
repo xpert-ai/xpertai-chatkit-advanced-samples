@@ -1,133 +1,29 @@
 ![OpenUI5 logo](http://openui5.org/images/OpenUI5_new_big_side.png)
 
-# sample-app
-> [OpenUI5](https://github.com/UI5/openui5) sample app using the [UI5 CLI](https://github.com/UI5/cli).
+# ChatKit sample-app
 
-[![REUSE status](https://api.reuse.software/badge/github.com/UI5/sample-app)](https://api.reuse.software/info/github.com/UI5/sample-app)
-
-## Live Demo
-A deployed version of the [sample-app](http://ui5.github.io/sample-app/index.html) is hosted on GitHub Pages.
+This is a sample application demonstrating the integration of [ChatKit](https://xpertai.cn/en/docs/ai/chatkit/) into an [OpenUI5](https://openui5.org/) application.
 
 ## Prerequisites
+
+- [XpertAI Platform](https://xpertai.cn/en/docs/ai/)
 - The [UI5 CLI](https://github.com/UI5/cli).
     - For installation instructions please see: [Installation](https://ui5.github.io/cli/stable/pages/CLI/#installation).
 
 ## Getting started
 1. Clone this repository and navigate into it
     ```sh
-    git clone https://github.com/UI5/sample-app.git
-    cd sample-app
+    git clone https://github.com/xpert-ai/xpertai-chatkit-advanced-samples.git
+    cd examples/sap-ui5
     ```
 1. Install all dependencies
     ```sh
     npm install
     ```
-
+1. Configure ChatKit
+    - Open the `webapp/manifest.json` file and replace `your-xpert-id-here` with your actual Xpert ID (from XpertAI platform) in the `chatkit` configuration section, ensure the `frameUrl` and `apiUrl` match your XpertAI platform settings if necessary.
+    - Open the `webapp/controller/App.controller.js` file and change the `getClientSecret` function to retrieve the client secret (XpertAI key) from your backend (odata) service. For testing purposes, you can directly return your client secret string.
 1. Start a local server and run the application (http://localhost:8080/index.html)
     ```sh
     ui5 serve -o index.html
     ```
-
-## Testing
-* Run [ESLint](https://eslint.org/) code validation
-    ```sh
-    npm run lint
-    ```
-* Start the [UI5 Test Runner](https://www.npmjs.com/package/ui5-test-runner) and execute the tests
-    ```sh
-    npm run test-ui5
-    ```
-* Run both ESLint and UI5 Test Runner
-    ```sh
-    npm test
-    ```
-## Building
-### Option 1: Standard preload build
-1. Execute the build
-    ```sh
-    ui5 build -a
-    ```
-1. Run the result
-    1. Run a local HTTP server on the build results (`/dist` directory)  
-	(**Note:** This script is using the [local-web-server](https://www.npmjs.com/package/local-web-server) npm module, but you can use any HTTP server for that)
-        ```sh
-        npm run serve-dist
-        ```
-    1. Open the app at http://localhost:8000
-
-### Option 2: Self-contained build
-1. (Optional) Remove previous build results
-   ```sh
-   rm -rf ./dist
-   ```
-1. Execute the `self-contained` build to create a bundle with all of your applications runtime dependencies
-    ```sh
-    ui5 build self-contained -a
-    ```
-1. Run the result
-    1. Run a local HTTP server on the build results (`/dist` directory)  
-	(**Note:** This script is using the [local-web-server](https://www.npmjs.com/package/local-web-server) npm module, but you can use any HTTP server for that)
-        ```sh
-        npm run serve-dist
-        ```
-    1. Open the app at http://localhost:8000
-
-## Working with local dependencies
-
-For local development of your applications' dependencies (like OpenUI5 libraries) you can use [UI5 Workspaces](https://ui5.github.io/cli/stable/pages/Workspace/). This will allow you to make changes to those dependencies locally and see the impact in your application immediately.
-
-### Preparation
-The following needs to be done just once per setup.
-
-1. Clone the OpenUI5 repository and navigate into it
-    **Note:** The UI5 version must be 1.65.0 or higher, you can check that in the root `package.json` file
-    ```sh
-    git clone https://github.com/UI5/openui5.git
-    cd openui5
-    ```
-1. Install all dependencies (this also links all OpenUI5 libraries between each other)
-    ```sh
-    npm install
-    ```
-
-### Setup UI5 Workspace
-
-Would you like to work on the application project and one or more of its UI5 framework dependencies at the same time? We got you covered!
-
-1. Create a new file `ui5-workspace.yaml` in the root folder of the project, right next to the `ui5.yaml`
-2. In `ui5-workspace.yaml`, add the paths to the local dependencies you'd like to use from your local machine:
-    ```yaml
-    specVersion: workspace/1.0
-    metadata:
-        name: default
-    dependencyManagement:
-        resolutions:
-            # local path to OpenUI5. It will resolve all required libraries and transitive dependencies.
-            - path: /local/path/to/openui5
-    ```
-3. Start the development server with default dependency resolution
-    ```sh
-    npm run start
-    ```
-
-You can now make changes in your local OpenUI5 repository and see the impact directly when serving or building your application.
-
-If a dependency that is listed in `ui5.yaml` is omitted in the `resolutions` section of `ui5-workspace.yaml`, the library is resolved in the usual way by downloading it from the registry. For more information about dependency resolutions, check [here](https://ui5.github.io/cli/stable/pages/Workspace/#dependency-management).
-
-#### Non-default workspace
-
-The workspace feature always uses the `default` workspace and always attempts to resolve any dependencies from it. If you'd like to use the workspace for local development but want to resolve the libraries in the usual way by default, you can name the workspace and use that name later, for example like this:
-
-```yaml
-specVersion: workspace/1.0
-metadata:
-    name: local-dependencies # Not "default"
-dependencyManagement:
-    resolutions:
-        - path: /local/path/to/openui5
-```
-
-```sh
-# Starts a server with a named workspace
-npm run start -- -w local-dependencies
-```

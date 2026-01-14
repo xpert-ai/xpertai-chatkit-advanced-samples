@@ -29,6 +29,13 @@
 			"compact": true,
 			"cozy": true
 		},
+		"config": {
+			"chatkit": {
+				"frameUrl": "https://app.mtda.cloud/chatkit/index.html",
+				"apiUrl": "https://api.mtda.cloud/api/ai",
+				"xpertId": "your-xpert-id-here"
+			}
+		},
 		"rootView": {
 			"viewName": "sap.ui.demo.todo.view.App",
 			"type": "XML",

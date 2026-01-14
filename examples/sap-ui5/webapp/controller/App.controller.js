@@ -20,15 +20,15 @@ sap.ui.define([
 				isMobile: Device.browser.mobile
 			}), "view");
 
-			const frameUrl = window.CHATKIT_FRAME_URL || "http://localhost:4200/chatkit/index.html";
+			const chatkitConfig = this._getChatKitConfig();
 			const chatkitModel = new JSONModel({
-				frameUrl,
-				isConfigured: !!frameUrl
+				frameUrl: chatkitConfig.frameUrl,
+				isConfigured: !!chatkitConfig.frameUrl
 			});
 			this.getView().setModel(chatkitModel, "chatkit");
 
-			if (frameUrl) {
-				this._initChatKit(frameUrl);
+			if (chatkitConfig.frameUrl) {
+				this._initChatKit(chatkitConfig);
 			}
 		},
 
@@ -207,11 +207,18 @@ sap.ui.define([
 			this.getModel().setProperty("/todos", updatedTodos);
 		},
 
-		_initChatKit(frameUrl) {
+		_getChatKitConfig() {
+			const ownerComponent = this.getOwnerComponent();
+			return ownerComponent && ownerComponent.getChatKitConfig ? ownerComponent.getChatKitConfig() : {};
+		},
+
+		_initChatKit(chatkitConfig) {
 			const chatContainer = this.byId("chatKitContainer");
 			if (!chatContainer) {
 				return;
 			}
+
+			const { frameUrl, apiUrl, xpertId } = chatkitConfig;
 
 			sap.ui.require(["xpertai/chatkit/ui5"], (ChatKitLib) => {
 				if (this._chatKitControl) {
@@ -225,11 +232,11 @@ sap.ui.define([
 					config: {
 						frameUrl,
 						api: {
-							apiUrl: window.CHATKIT_API_URL || "http://localhost:3000/api/ai",
-							xpertId: 'your-xpert-id',
+							apiUrl,
+							xpertId,
 							getClientSecret: () => {
 								// Call your backend odata to get a valid client secret for the user
-								return 'sk-x-your-client-secret';
+								return 'your-client-secret-from-backend';
 							}
 						},
 						onEffect: ({ name, data }) => {
