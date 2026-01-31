@@ -1,0 +1,70 @@
+<core:FragmentDefinition
+   xmlns="sap.m"
+   xmlns:core="sap.ui.core"
+   xmlns:ui="sap.ui.table">
+    <ui:Table id="tableId" enableBusyIndicator="true" width="100%" visibleRowCountMode="Auto"  selectionMode="MultiToggle" rowActionCount="1" rows="{Datas>/aInfoList}">
+        <ui:extension>
+            <OverflowToolbar style="Clear">
+                <Button text="Save" type="Ghost" tooltip="Save" press="onSave"/>
+                <Button text="Save all" type="Ghost" tooltip="Save all" press="onSaveALL"/>
+                <ToolbarSeparator class="sapUi5VerticalSeparator"/>
+                <Button text="Edit" type="Ghost" tooltip="Edit" press="onEdit"/>
+                <Button text="Cancel all edit and restore all data" type="Ghost" tooltip="Clear all edit" press="onClearAllEdit"/>
+                <ToolbarSeparator class="sapUi5VerticalSeparator"/>
+                <Button text="Delete" type="Ghost" tooltip="Delete" press="onDelete"/>
+                <Button text="Delete all" type="Ghost" tooltip="Delete all" press="deleteAll"/>
+                <ToolbarSeparator class="sapUi5VerticalSeparator"/>
+                <Button text="Clear all sortings" type="Ghost" tooltip="Clear all sortings" press="clearAllSortings"/>
+                <Button text="Clear all filters" type="Ghost" tooltip="Clear all filters" press="clearAllFilters"/>
+                <ToolbarSpacer/>
+            </OverflowToolbar>
+        </ui:extension>
+        <ui:columns>
+            <ui:Column id="warehouseNumber" sortProperty="warehouseNumber" filterProperty="warehouseNumber" tooltip="{i18n>lblWarehouseNumber}" hAlign="Left" width="12rem">
+                <Label text="{i18n>lblWarehouseNumber}" />
+                <ui:template>
+                    <VBox>
+                        <Text text="{Datas>warehouseNumber}" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) === -1 }" wrapping="false"/>
+                        <Input name="Warehouse number" value="{Datas>warehouseNumber}" maxLength="4" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) !== -1 }" change="onChangeInputCheck"/>
+                    </VBox>
+                </ui:template>
+            </ui:Column>
+            <ui:Column id="storageType" sortProperty="storageType" filterProperty="storageType" tooltip="{i18n>lblStorageType}" hAlign="Left" width="12rem">
+                <Label text="{i18n>lblStorageType}" />
+                <ui:template>
+                    <VBox>
+                        <Text text="{Datas>storageType}" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) === -1 }" wrapping="false"/>
+                        <Input name="Storage type" value="{Datas>storageType}" maxLength="18" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) !== -1 }" change="onChangeInputCheck"/>
+                    </VBox>
+                </ui:template>
+            </ui:Column>
+            <ui:Column id="binCode" sortProperty="binCode" filterProperty="binCode" tooltip="{i18n>lblBinCode}" hAlign="Left" width="12rem">
+                <Label text="{i18n>lblBinCode}" />
+                <ui:template>
+                    <VBox>
+                        <Text text="{Datas>binCode}" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) === -1 }" wrapping="false"/>
+                        <Input name="Bin code" value="{Datas>binCode}" maxLength="4" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) !== -1 }" change="onChangeInputCheck"/>
+                    </VBox>
+                </ui:template>
+            </ui:Column>
+            <ui:Column id="binType" sortProperty="binType" filterProperty="binType" tooltip="{i18n>lblBinType}" hAlign="Left" width="12rem">
+                <Label text="{i18n>lblBinType}" />
+                <ui:template>
+                    <VBox>
+                        <Text text="{Datas>binType}" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) === -1 }" wrapping="false"/>
+                        <Input name="Bin type" value="{Datas>binType}" maxLength="4" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) !== -1 }" change="onChangeInputCheck"/>
+                    </VBox>
+                </ui:template>
+            </ui:Column>
+            <ui:Column id="storageZone" sortProperty="storageZone" filterProperty="storageZone" tooltip="{i18n>lblStorageZone}" hAlign="Left" width="12rem">
+                <Label text="{i18n>lblStorageZone}" />
+                <ui:template>
+                    <VBox>
+                        <Text text="{Datas>storageZone}" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) === -1 }" wrapping="false"/>
+                        <Input name="Storage zone" value="{Datas>storageZone}" maxLength="4" visible="{= ${Datas>/editList}.indexOf(${Datas>id}) !== -1 }"/>
+                    </VBox>
+                </ui:template>
+            </ui:Column>
+    </ui:columns>
+</ui:Table>
+</core:FragmentDefinition>
