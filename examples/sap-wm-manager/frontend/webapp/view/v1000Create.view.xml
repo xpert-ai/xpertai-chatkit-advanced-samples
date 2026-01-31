@@ -1,0 +1,30 @@
+<mvc:View controllerName="ai.com.zb001.controller.v1000Create"
+    xmlns="sap.m" displayBlock="true"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:tnt="sap.tnt"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:l="sap.ui.layout"
+	height="100%">
+    <f:DynamicPage id="dpV1000PageId">
+        <f:title>
+        </f:title>
+        <f:header>
+        </f:header>
+        <f:content>
+        <!-- <core:Fragment fragmentName="ai.com.zb001.view.fragment.Table" type="XML"/> -->
+            <FlexBox alignItems="Stretch" justifyContent="SpaceBetween" width="100%" height="100%" fitContainer="true">
+                <VBox id="todoColumn" width="69.5%" height="100%" fitContainer="true">
+                    <core:Fragment fragmentName="ai.com.zb001.view.fragment.Table" type="XML"/>
+                </VBox>
+                <VBox id="chatColumn" width="30%" height="100%" fitContainer="true">
+                    <VBox
+                        id="chatKitContainer"
+                        class="chatKitContainer" height="100%" fitContainer="true"/></VBox>
+            </FlexBox>
+            <!-- <HBox width="70%" fitContainer="true">
+                <core:Fragment fragmentName="ai.com.zb001.view.fragment.Table" type="XML"/>
+            </HBox> -->
+        </f:content>
+    </f:DynamicPage>
+</mvc:View>

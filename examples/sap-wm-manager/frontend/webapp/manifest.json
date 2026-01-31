@@ -1,0 +1,148 @@
+{
+  "_version": "1.48.0",
+  "sap.app": {
+    "id": "ai.com.zb001",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.1",
+      "toolsId": "d605d1a0-59cb-41a3-9bb8-ae9ddbfee090"
+    },
+    "dataSources": {
+      "odataService": {
+          "uri": "/sap/opu/odata/sap/Z_SCWM_LAGP_AI_POST_SRV",
+          "type": "OData",
+          "settings": {
+              "odataVersion": "2.0"
+          }
+      },
+      "clientSecretService": {
+          "uri": "/sap/opu/odata/sap/Z_CLIENT_SECRET_SRV",
+          "type": "OData",
+          "settings": {
+              "odataVersion": "2.0"
+          }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "aa-aa": {
+          "semanticObject": "CreatePhysInventoryDocuments",
+          "action": "List",
+          "title": "Create Phys. Inventory Documents - Whse.",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.108.44",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+		"config": {
+			"chatkit": {
+				"frameUrl": "https://app.mtda.cloud/chatkit/index.html",
+				"apiUrl": "https://api.mtda.cloud/api/ai",
+				"xpertId": "d7d525e9-cd2d-4ce4-a0bb-bd931b7bdbd4"
+			}
+		},
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ai.com.zb001.i18n.i18n"
+        }
+      },
+      "odataService": {
+        "dataSource": "odataService",
+        "preload": true,
+        "settings": {}
+      },
+      "clientSecretService": {
+        "dataSource": "clientSecretService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "async": true,
+        "viewPath": "ai.com.zb001.view",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "clearControlAggregation": false
+      },
+      "routes": [
+        {
+          "name": "Routev1000Create",
+          "pattern": ":?query:",
+          "target": [
+            "Targetv1000Create"
+          ]
+        }
+      ],
+      "targets": {
+        "Targetv1000Create": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "v1000Create",
+          "viewName": "v1000Create"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ai.com.zb001.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    },
+		"resourceRoots": {
+			"xpertai.chatkit": "thirdparty/xpertai/chatkit/"
+		}
+  }
+}
