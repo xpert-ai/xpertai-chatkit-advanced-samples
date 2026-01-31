@@ -231,6 +231,13 @@ sap.ui.define([
 					}),
 					config: {
 						frameUrl,
+						composer: {
+							attachments: {
+								enabled: true,
+								maxCount: 5,
+								maxSize: 10485760 // 10MB
+							},
+						},
 						api: {
 							apiUrl,
 							xpertId,
@@ -246,6 +253,35 @@ sap.ui.define([
 								this._addTodosFromEffect(payload.todos);
 							}
 						},
+						onClientTool: async (params) => {
+							/**
+							 * Example params of client tool call:
+							 * ```json
+							 * {
+									"name": "save_todos",
+									"params": {},
+									"id": "call_00_XUqLw2FLW98gZkPcATn97qtv"
+								}
+							 */
+							console.log("Client tool requested:", params);
+							if (params.name === 'save_storage_positions') {
+								console.log("Saving storage positions:", params.params);
+								return {
+									tool_call_id: params.id,
+									name: params.name,
+									status: 'success',
+									content: 'Saved!',
+								};
+							}
+							
+							// You can implement custom client tools here
+							return {
+								tool_call_id: params.id,
+								name: params.name,
+								status: 'failed',
+								content: 'Unknown client tool'
+							};
+						}
 					}
 				});
 				this._chatKitControl.addStyleClass("chatKitHost");
